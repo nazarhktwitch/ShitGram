@@ -6,8 +6,9 @@ from datetime import datetime
 
 app = Flask(__name__)
 
-# Настройка базы данных
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///shitgram.db'
+# Используем базу данных в памяти для работы на Vercel
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'  # база данных в памяти
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['JWT_SECRET_KEY'] = 'supersecretkey'  # Используйте более безопасный ключ для продакшн
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
