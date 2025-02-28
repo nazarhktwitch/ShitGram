@@ -5,12 +5,15 @@ from flask_jwt_extended import JWTManager, create_access_token, jwt_required, ge
 from datetime import datetime
 
 app = Flask(__name__)
+
+# Настройка базы данных
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///shitgram.db'
-app.config['JWT_SECRET_KEY'] = 'supersecretkey'
+app.config['JWT_SECRET_KEY'] = 'supersecretkey'  # Используйте более безопасный ключ для продакшн
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
 jwt = JWTManager(app)
 
+# Модели базы данных
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50), unique=True, nullable=False)
@@ -32,6 +35,7 @@ class Message(db.Model):
 def create_tables():
     db.create_all()
 
+# Регистрация пользователя
 @app.route('/register', methods=['POST'])
 def register():
     data = request.json
@@ -41,6 +45,7 @@ def register():
     db.session.commit()
     return jsonify({'message': 'User registered'}), 201
 
+# Логин пользователя
 @app.route('/login', methods=['POST'])
 def login():
     data = request.json
@@ -50,6 +55,7 @@ def login():
         return jsonify({'token': token})
     return jsonify({'error': 'Invalid credentials'}), 401
 
+# Создание чата между двумя пользователями
 @app.route('/create_chat', methods=['POST'])
 @jwt_required()
 def create_chat():
@@ -63,6 +69,7 @@ def create_chat():
     db.session.commit()
     return jsonify({'chat_id': chat.id})
 
+# Отправка сообщения
 @app.route('/send_message', methods=['POST'])
 @jwt_required()
 def send_message():
@@ -76,6 +83,7 @@ def send_message():
     db.session.commit()
     return jsonify({'message': 'Message sent'})
 
+# Получение списка чатов пользователя
 @app.route('/get_chats', methods=['GET'])
 @jwt_required()
 def get_chats():
@@ -83,6 +91,7 @@ def get_chats():
     chats = Chat.query.filter((Chat.user1_id == user_id) | (Chat.user2_id == user_id)).all()
     return jsonify([{'chat_id': chat.id, 'user1': chat.user1_id, 'user2': chat.user2_id} for chat in chats])
 
+# Получение сообщений из чата
 @app.route('/get_messages/<int:chat_id>', methods=['GET'])
 @jwt_required()
 def get_messages(chat_id):
